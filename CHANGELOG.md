@@ -3,6 +3,9 @@ This is the change log for the plugin, all relevant changes will be listed here.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
+## 2.0.1
+- Fix Homebridge 2.x crash: use `Service.Battery` instead of the removed `Service.BatteryService` alias
+
 ## 2.0.0
 - v2 fork of the discontinued `homebridge-landroid`
 - Fix broken MQTT connection: Worx removed the `GET /api/v2/users/me` route (now DELETE-only). User id / MQTT endpoint are now read from the `product-items` response instead
