@@ -178,7 +178,7 @@ function LandroidAccessory(platform, name, serial, accessory) {
       this.accessory.context.serial = serial;
 
       this.accessory.addService(new Service.Switch("Landroid " + name));
-      this.accessory.addService(new Service.BatteryService());
+      this.accessory.addService(new Service.Battery());
       this.accessory.addService(new Service.ContactSensor("Landroid " + name + " Problem", "ErrorSensor"));
       if(this.config.rainsensor) this.accessory.addService(new Service.LeakSensor("Landroid " + name + " Rain"));
       if(this.config.homesensor) this.accessory.addService(new Service.ContactSensor("Landroid " + name + " Home", "HomeSensor"));
@@ -203,9 +203,9 @@ function LandroidAccessory(platform, name, serial, accessory) {
       this.accessory.getService(Service.Switch).getCharacteristic(Characteristic.On).on('set', this.setOn.bind(this));
     }
 
-    this.accessory.getService(Service.BatteryService).getCharacteristic(Characteristic.BatteryLevel).on('get', this.getBatteryLevel.bind(this));
-    this.accessory.getService(Service.BatteryService).getCharacteristic(Characteristic.StatusLowBattery).on('get', this.getStatusLowBattery.bind(this));
-    this.accessory.getService(Service.BatteryService).getCharacteristic(Characteristic.ChargingState).on('get', this.getChargingState.bind(this));
+    this.accessory.getService(Service.Battery).getCharacteristic(Characteristic.BatteryLevel).on('get', this.getBatteryLevel.bind(this));
+    this.accessory.getService(Service.Battery).getCharacteristic(Characteristic.StatusLowBattery).on('get', this.getStatusLowBattery.bind(this));
+    this.accessory.getService(Service.Battery).getCharacteristic(Characteristic.ChargingState).on('get', this.getChargingState.bind(this));
 
     if(this.accessory.getService("ErrorSensor")){
       this.accessory.getService("ErrorSensor").getCharacteristic(Characteristic.ContactSensorState).on('get', this.getContactSensorStateError.bind(this));
@@ -260,7 +260,7 @@ LandroidAccessory.prototype.landroidUpdate = function(serial, item, data, mowdat
     }
     if(this.dataset.batteryState != oldDataset.batteryState){
     //  this.log("Landroid " + this.name + " battery level changed to " + this.dataset.batteryState);
-      this.accessory.getService(Service.BatteryService).getCharacteristic(Characteristic.BatteryLevel).updateValue(this.dataset.batteryState);
+      this.accessory.getService(Service.Battery).getCharacteristic(Characteristic.BatteryLevel).updateValue(this.dataset.batteryState);
     }
     if(this.dataset.partyModus != oldDataset.partyModus){
       if(this.accessory.getService("PartySwitch")){
@@ -270,7 +270,7 @@ LandroidAccessory.prototype.landroidUpdate = function(serial, item, data, mowdat
     if(this.dataset.batteryCharging != oldDataset.batteryCharging){
       this.log("Landroid " + this.name + " charging status changed to " + this.dataset.batteryCharging 
         + ", battery level " + this.dataset.batteryState);
-      this.accessory.getService(Service.BatteryService).getCharacteristic(Characteristic.ChargingState).updateValue(this.dataset.batteryCharging?
+      this.accessory.getService(Service.Battery).getCharacteristic(Characteristic.ChargingState).updateValue(this.dataset.batteryCharging?
         Characteristic.ChargingState.CHARGING:Characteristic.ChargingState.NOT_CHARGING);
     }
     if(this.dataset.statusCode != oldDataset.statusCode){
