@@ -1,26 +1,26 @@
 {
-  "name": "homebridge-landroid",
-  "version": "0.12.4",
-  "description": "HomeBridge plugin for Worx Landroid lawnmowers",
+  "name": "homebridge-landroid-v2",
+  "version": "2.0.0",
+  "description": "HomeBridge plugin for Worx Landroid lawnmowers (v2 fork, fixed Worx cloud API)",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/homebridge/bin/homebridge -P ./ -I -U ./.homebridge"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/normen/homebridge-landroid.git"
+    "url": "git+https://github.com/mrcksz/homebridge-landroid-v2.git"
   },
   "keywords": [
     "homebridge-plugin",
     "worx",
     "landroid"
   ],
-  "author": "Normen Hansen",
+  "author": "Foxlution IT (v2 fork), originally Normen Hansen",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/normen/homebridge-landroid/issues"
+    "url": "https://github.com/mrcksz/homebridge-landroid-v2/issues"
   },
-  "homepage": "https://github.com/normen/homebridge-landroid#readme",
+  "homepage": "https://github.com/mrcksz/homebridge-landroid-v2#readme",
   "dependencies": {
     "aws-iot-device-sdk": "^2.2.12",
     "aws-iot-device-sdk-v2": "^1.16.2",

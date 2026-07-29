@@ -1,38 +1,20 @@
-# DISCONTINUED
+# homebridge-landroid-v2
 
-** This project has been discontinued as of December 2023 **
+Maintained **v2 fork** of [`normen/homebridge-landroid`](https://github.com/normen/homebridge-landroid), which was discontinued in December 2023.
 
-I moved my personal setup to [FHEM](https://github.com/fhem) which supports Worx mowers out of the box and can be used together with homebridge.
-
-##### Basic rundown
-
-- Install [FHEM](https://fhem.de/#Installation)
-- Install [Homebridge-FHEM](https://github.com/justme-1968/homebridge-fhem) plugin in Homebridge
-- Add Worx mowers to FHEM according to [this guide](https://wiki.fhem.de/wiki/Mähroboter:_Worx_Landroid,_Kress,_Landxcape)
-- Mowers will be found and added after you configured the Worx bridge as outlined above
-- Apply `worx_landroid` attrTemplate to newly found mowers via web UI set command or otherwise
-- Add `siriName` attribute to mower for it to be loaded in HomeKit
-- Add `homekitMapping` attribute to mower with the content below
-- Restart homebridge
-
-##### homekitMapping
-
-This `homekitMapping` has to be added to the mower so it can be controlled properly from HomeKit:
-```
-clear
-On=mowerStatusTxt,values=Home:0;;/.*/:1,cmds=0:stopMower;;1:startMower;;false:stopMower;;true:startMower
-BatteryService#BatteryLevel=batteryPercent
-BatteryService#ChargingState=batteryCharging
-BatteryService#StatusLowBattery=batteryPercent,threshold=20,values=0:BATTERY_LEVEL_LOW;;1:BATTERY_LEVEL_NORMAL
-```
-
-To add other switches you can add more `On=...` lines, to add ContactSensors add a line like
-```
-ContactSensorState=mowerStatusTxt,values=closed:Home=0;open:/.*/
-```
-
-# homebridge-landroid [![NPM Version](https://img.shields.io/npm/v/homebridge-landroid.svg)](https://www.npmjs.com/package/homebridge-landroid) [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 Homebridge plugin to control Worx Landroid (as well as Kress, Ferrex and Landxcape) lawn mowers through the Cloud, should support most mowers.
+
+### Why this fork
+
+The original plugin stopped working because Worx removed the `GET /api/v2/users/me` route from their cloud API (it is now `DELETE`-only). This caused the MQTT connection to crash with:
+
+```
+{"message":"The GET method is not supported for route api/v2/users/me. Supported methods: DELETE."}
+awsMqtt: TypeError: Cannot set properties of undefined (setting 'mqtt_newendpoint')
+Error mqtt connection!
+```
+
+This fork removes the obsolete `users/me` call and reads the required user id / MQTT endpoint directly from the `product-items` response (matching the current [`ioBroker.worx`](https://github.com/iobroker-community-adapters/ioBroker.worx) upstream), so login and MQTT work again.
 
 ## Features
  - Automatically fetches all mowers from Cloud
@@ -46,7 +28,8 @@ Homebridge plugin to control Worx Landroid (as well as Kress, Ferrex and Landxca
 
 ## Installation
 1. Install homebridge using: npm install -g homebridge
-2. Install this plugin using: npm install -g homebridge-landroid
+2. Install this plugin using: npm install -g homebridge-landroid-v2
+   (or install the local folder during development: npm install -g .)
 3. Set up homebridges config.json with your Worx account data
 
 #### Example config

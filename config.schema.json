@@ -1,7 +1,7 @@
 {
   "pluginAlias": "Landroid",
   "pluginType": "platform",
-  "footerDisplay": "For documentation please see the https://github.com/normen/homebridge-landroid",
+  "footerDisplay": "For documentation please see the https://github.com/mrcksz/homebridge-landroid-v2",
   "schema": {
     "email":{
       "title": "eMail",

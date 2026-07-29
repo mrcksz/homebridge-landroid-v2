@@ -39,7 +39,7 @@ function LandroidPlatform(log, config, api) {
       self.log('**** WARNING: Landroid plugin is in reload mode, mowers will be recreated each boot ****');
       self.accessories.forEach(accessory => {
         self.log('Removing Landroid ' + accessory.accessory.displayName + ' from HomeKit');
-        self.api.unregisterPlatformAccessories('homebridge-landroid', 'Landroid', [accessory.accessory]);
+        self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [accessory.accessory]);
       });
       self.accessories = [];
     }
@@ -91,7 +91,7 @@ LandroidPlatform.prototype.clearOldMowers = function() {
   const self = this;
   this.accessories.forEach((accessory, idx, obj) => {
     if(!self.cloudMowers.includes(accessory.serial)){
-      self.api.unregisterPlatformAccessories('homebridge-landroid', 'Landroid', [accessory.accessory]);
+      self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [accessory.accessory]);
       obj.splice(idx, 1);
     }
   });
@@ -138,7 +138,7 @@ LandroidPlatform.prototype.landroidFound = function(name, serial) {
   const newMower = new LandroidAccessory(this, name, serial);
   this.accessories.push(newMower);
   this.log("Adding Landroid " + name + " to HomeKit");
-  this.api.registerPlatformAccessories('homebridge-landroid', 'Landroid', [newMower.accessory]);
+  this.api.registerPlatformAccessories('homebridge-landroid-v2', 'Landroid', [newMower.accessory]);
   //this.landroidUpdate(mower,data);
 }
 
@@ -431,7 +431,7 @@ function LandroidLogger(log){
 }
 
 function updateStorage(newPath){
-  var confPath = newPath + "/plugin-persist/homebridge-landroid";
+  var confPath = newPath + "/plugin-persist/homebridge-landroid-v2";
   if(!fs.existsSync(confPath)){
     fs.mkdirSync(confPath, {recursive: true});
   }
@@ -444,5 +444,5 @@ module.exports = function(homebridge) {
   Characteristic = homebridge.hap.Characteristic;
   UUIDGen = homebridge.hap.uuid;
   STORAGE_PATH = updateStorage(homebridge.user.storagePath());
-  homebridge.registerPlatform("homebridge-landroid", "Landroid", LandroidPlatform, true);
+  homebridge.registerPlatform("homebridge-landroid-v2", "Landroid", LandroidPlatform, true);
 }

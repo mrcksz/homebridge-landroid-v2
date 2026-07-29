@@ -782,9 +782,13 @@ class Worx extends Adapter {
             return;
         }
 
+        // Worx removed the "GET /api/v2/users/me" route (now DELETE-only), which
+        // used to provide userData. The needed fields (user id + mqtt endpoint)
+        // are already present in the product-items response, so use those instead.
         if (!this.userData) {
-            this.userData = await this.apiRequest("users/me", false);
+            this.userData = {};
         }
+        this.userData.id = this.deviceArray[0].user_id;
 
         try {
             this.connectMqtt();
