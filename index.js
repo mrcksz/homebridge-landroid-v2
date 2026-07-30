@@ -195,6 +195,7 @@ function LandroidAccessory(platform, name, serial, accessory) {
       if(this.config.rainsensor) this.accessory.addService(new Service.LeakSensor("Landroid " + name + " Rain"));
       if(this.config.homesensor) this.accessory.addService(new Service.ContactSensor("Landroid " + name + " Home", "HomeSensor"));
       if(this.config.partymode) this.accessory.addService(new Service.Switch("Landroid " + name + " PartyMode", "PartySwitch"));
+      if(this.config.edgecut) this.accessory.addService(new Service.Switch("Landroid " + name + " Edge Cut", "EdgeSwitch"));
     }
 
     this.name = this.accessory.context.name;
@@ -238,6 +239,12 @@ function LandroidAccessory(platform, name, serial, accessory) {
       this.accessory.getService("PartySwitch").getCharacteristic(Characteristic.On).on('set', this.setPartyMode.bind(this));
     } else if(this.config.partymode) {
       this.log("Party switch not found");
+    }
+    if(this.config.edgecut && this.accessory.getService("EdgeSwitch")) {
+      this.accessory.getService("EdgeSwitch").getCharacteristic(Characteristic.On).on('get', this.getEdgeCut.bind(this));
+      this.accessory.getService("EdgeSwitch").getCharacteristic(Characteristic.On).on('set', this.setEdgeCut.bind(this));
+    } else if(this.config.edgecut) {
+      this.log("Edge Cut switch not found");
     }
 }
 
@@ -293,6 +300,10 @@ LandroidAccessory.prototype.landroidUpdate = function(serial, item, data, mowdat
         if(this.config.homesensor && this.accessory.getService("HomeSensor")) this.accessory.getService("HomeSensor").getCharacteristic(Characteristic.ContactSensorState).updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
       }else{
         this.accessory.getService(Service.Switch).getCharacteristic(Characteristic.On).updateValue(false);
+      }
+      // statusCode 32 = "Border Cut": reflect it on the optional Edge Cut switch
+      if(this.config.edgecut && this.accessory.getService("EdgeSwitch")) {
+        this.accessory.getService("EdgeSwitch").getCharacteristic(Characteristic.On).updateValue(this.dataset.statusCode == 32);
       }
       if(this.dataset.statusCode == 1 && oldDataset.totalTime != null && oldDataset.totalTime != undefined && mowdata) {
         // Landroid has just arrived home so show how much it's worked since last leaving (or last restarting Homebridge)
@@ -388,6 +399,28 @@ LandroidAccessory.prototype.setPartyMode = function(state, callback) {
   }
   this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
   this.landroidCloud.sendMessage(outMsg, this.serial);
+}
+
+LandroidAccessory.prototype.getEdgeCut = function(callback) {
+  // statusCode 32 = mower is currently cutting the border/edge
+  callback(null, this.dataset.statusCode == 32);
+}
+
+LandroidAccessory.prototype.setEdgeCut = function(state, callback) {
+  if(!this.serial){
+    this.log("Error: Mower has not been configured yet.");
+  }
+  let outMsg;
+  if (state) {
+    // One-time schedule that only cuts the border/edge (bc=1) with no extra mowing (wtm=0)
+    outMsg = '{"sc":{"ots":{"bc":1,"wtm":0}}}';
+  } else {
+    // Send the mower back home
+    outMsg = '{"cmd":3}';
+  }
+  this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
+  this.landroidCloud.sendMessage(outMsg, this.serial);
+  callback(null);
 }
 
 LandroidAccessory.prototype.sendMessage = function(cmd, params) {

@@ -45,6 +45,11 @@
         "description": "Adds a switch that enables PartyMode on supported mowers",
         "type": "boolean"
       },
+      "edgecut": {
+        "title": "Enable Edge Cut switch",
+        "description": "Adds a switch that starts a one-time border/edge cut on supported mowers. Turning it off sends the mower home.",
+        "type": "boolean"
+      },
       "reload": {
         "title": "Reload All Mowers",
         "description": "Clears and reloads all mowers from the cloud, set and reboot HomeBridge, then unset again.",
@@ -78,6 +83,7 @@
         "reload",
         "mowdata",
         "partymode",
+        "edgecut",
         "debug"
       ]
     }

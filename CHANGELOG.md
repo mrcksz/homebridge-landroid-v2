@@ -1,6 +1,9 @@
 # Changelog
 This is the change log for the plugin, all relevant changes will be listed here.
 
+## 2.1.0-dev.0 (dev channel)
+- New optional **Edge Cut switch** (`edgecut` config option): turning it on triggers a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`), turning it off sends the mower home. The switch reflects status code 32 ("Border Cut"). Experimental — published on the npm `dev` dist-tag for testing.
+
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
 ## 2.0.4
