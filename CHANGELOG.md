@@ -3,6 +3,13 @@ This is the change log for the plugin, all relevant changes will be listed here.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
+## 2.0.3
+- Homebridge Verified check fixes:
+  - `engines.node` now also allows Node 24
+  - `config.schema.json`: wrap fields in a proper JSON schema (`type: object` + `properties`) and add the required `name` property
+  - Convert template-literal `require()` calls to plain strings (removes a "dynamic require" false positive)
+  - Remove the unused classic `aws-iot-device-sdk` dependency and bump `uuid` to v11 (fewer dependency vulnerabilities); remaining advisories are transitive dependencies of `aws-crt` (the official AWS IoT SDK required for the Worx MQTT connection)
+
 ## 2.0.2
 - Harden error handling so plugin errors are caught and logged instead of crashing Homebridge:
   - Guard cloud startup (`onReady`) and the state/object update callbacks

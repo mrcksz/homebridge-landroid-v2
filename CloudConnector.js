@@ -6,7 +6,6 @@
 
 const Adapter = require("./CloudAdapter");
 const axios = require("axios").default;
-//const awsIot = require("aws-iot-device-sdk").device;
 const { mqtt, iot } = require("aws-iot-device-sdk-v2");
 // const qs = require("qs");
 const Json2iob = require("json2iob");
@@ -14,8 +13,8 @@ const tough = require("tough-cookie");
 const { HttpsCookieAgent } = require("http-cookie-agent/http");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
-const objects = require(`./lib/objects`);
-const helper = require(`./lib/helper`);
+const objects = require("./lib/objects");
+const helper = require("./lib/helper");
 const not_allowed = 60000 * 10;
 const mqtt_poll_max = 60000;
 const poll_check = 1000; //1 sec.
