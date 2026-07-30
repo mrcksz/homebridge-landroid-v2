@@ -56,7 +56,8 @@ This fork removes the obsolete `users/me` call and reads the required user id / 
  - `pwd` Password for your Worx account
  - `rainsensor` Adds an additional "Leak" sensor for rain detection
  - `homesensor` Adds an additional "Home" sensor for home detection
- - `partyswitch` Adds an additional "PartyMode" switch to temporarily disable the schedule
+ - `partymode` Adds an additional "PartyMode" switch to temporarily disable the schedule
+ - `edgecut` Adds an "Edge Cut" trigger switch that starts a one-time border/edge cut on supported mowers
  - `reload` Clears all mowers in HomeKit and reloads them from the cloud, default `false`
  - `cloud` Sets the cloud to use, `worx`, `kress`, `ferrex` or `landxcape`, default `worx`
  - `debug` Enable additional debug log output, default `false`

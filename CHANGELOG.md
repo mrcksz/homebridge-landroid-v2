@@ -1,22 +1,14 @@
 # Changelog
 This is the change log for the plugin, all relevant changes will be listed here.
 
-## 2.1.0-dev.3 (dev channel)
-- Edge Cut is now a service **on the mower accessory** again (grouped with the mower, not a separate device), but with a short name ("Edge Cut") so Apple Home doesn't truncate it. The mower on/off switch is marked as the primary service. Any standalone Edge Cut accessory created by dev.2 is removed automatically on upgrade.
-
-## 2.1.0-dev.2 (dev channel)
-- Edge Cut is now exposed as its **own standalone HomeKit accessory** (its own tile), independent of the mower's on/off switch, instead of an extra switch on the mower accessory. Any leftover sub-switch from earlier dev builds is removed automatically.
-- Fix a latent bug in the old-mower cleanup that could skip entries (forEach + splice).
-
-## 2.1.0-dev.1 (dev channel)
-- Fix: optional services (rain/home/PartyMode/Edge Cut) are now reconciled on every startup, so enabling/disabling them also works for mowers restored from the HomeKit cache (previously they were only added when a mower was first created).
-- Edge Cut switch is now a momentary trigger button (auto-resets to off) so it works regardless of whether the mower is mowing or at home; it no longer sends the mower home when switched off.
-- Fix: `setPartyMode` now calls its HomeKit callback (avoids HomeKit warnings/timeouts).
-
-## 2.1.0-dev.0 (dev channel)
-- New optional **Edge Cut switch** (`edgecut` config option): triggers a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`). Experimental — published on the npm `dev` dist-tag for testing.
-
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
+
+## 2.1.0
+- New optional **Edge Cut switch** (`edgecut` config option): a momentary trigger button on the mower accessory (short name "Edge Cut") that starts a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`). It works regardless of whether the mower is currently mowing or at home, and auto-resets to off.
+- Optional services (rain sensor / home sensor / PartyMode / Edge Cut) are now reconciled on every startup, so enabling or disabling them in the config also works for mowers restored from the HomeKit cache (previously they were only added when a mower was first created).
+- The mower on/off switch is marked as the primary service so HomeKit keeps the extra switches grouped under the one mower accessory.
+- Fix: `setPartyMode` now calls its HomeKit callback (avoids HomeKit warnings/timeouts).
+- Fix: a latent bug in the old-mower cleanup that could skip entries (forEach + splice).
 
 ## 2.0.4
 - `config.schema.json`: use standard JSON Schema `required` (array at object level, `["email", "pwd"]`) instead of the deprecated per-field `"required": true/false` shorthand
