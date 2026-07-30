@@ -3,6 +3,12 @@ This is the change log for the plugin, all relevant changes will be listed here.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
+## 2.0.2
+- Harden error handling so plugin errors are caught and logged instead of crashing Homebridge:
+  - Guard cloud startup (`onReady`) and the state/object update callbacks
+  - Guard the periodic intervals (firmware, devices, token refresh, activity log)
+  - Guard the MQTT `message`, `connect` and `resume` handlers and the auto-restart timer
+
 ## 2.0.1
 - Fix Homebridge 2.x crash: use `Service.Battery` instead of the removed `Service.BatteryService` alias
 

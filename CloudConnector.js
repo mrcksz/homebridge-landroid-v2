@@ -137,14 +137,22 @@ class Worx extends Adapter {
 
             this.updateFW = this.setInterval(
                 async () => {
-                    await this.updateFirmware();
+                    try {
+                        await this.updateFirmware();
+                    } catch (e) {
+                        this.log.error("updateFirmware interval failed: " + e);
+                    }
                 },
                 24 * 60 * 1000 * 60,
             ); // 24 hour
 
             this.updateInterval = this.setInterval(
                 async () => {
-                    await this.updateDevices();
+                    try {
+                        await this.updateDevices();
+                    } catch (e) {
+                        this.log.error("updateDevices interval failed: " + e);
+                    }
                 },
                 10 * 60 * 1000,
             ); // 10 minutes
@@ -155,13 +163,17 @@ class Worx extends Adapter {
             this.updateMqttData(true);
             this.refreshTokenInterval = this.setInterval(
                 () => {
-                    this.refreshToken();
+                    Promise.resolve(this.refreshToken()).catch((e) => {
+                        this.log.error("refreshToken interval failed: " + e);
+                    });
                 },
                 (this.session.expires_in - 200) * 1000,
             );
 
             this.refreshActivity = this.setInterval(() => {
-                this.createActivityLogStates();
+                Promise.resolve(this.createActivityLogStates()).catch((e) => {
+                    this.log.error("createActivityLogStates interval failed: " + e);
+                });
             }, 60 * 1000); // 1 minutes
         }
     }
@@ -859,6 +871,7 @@ class Worx extends Adapter {
             }
 
             this.mqttC.on("message", async (topic, message, dup, qos, retain) => {
+              try {
                 let data;
                 try {
                     const json = Buffer.from(message);
@@ -928,9 +941,13 @@ class Worx extends Adapter {
                     this.log.info(`Worxcloud MQTT could not find mower topic - ${topic} in mowers`);
                     this.log.info(`Mower List : ${JSON.stringify(this.deviceArray)}`);
                 }
+              } catch (err) {
+                this.log.error("Error handling MQTT message: " + (err && err.stack ? err.stack : err));
+              }
             });
 
             this.mqttC.on("connect", async (session_present) => {
+              try {
                 this.setMqttOnline(true);
                 this.log.debug(`MQTT connection: ${session_present}`);
                 this.log.debug("MQTT connected to: " + this.userData.mqtt_newendpoint);
@@ -957,6 +974,9 @@ class Worx extends Adapter {
                     }
                 }
                 this.initConnection = false;
+              } catch (err) {
+                this.log.error("Error in MQTT connect handler: " + (err && err.stack ? err.stack : err));
+              }
             });
 
             this.mqttC.on("interrupt", async (error) => {
@@ -965,6 +985,7 @@ class Worx extends Adapter {
             });
 
             this.mqttC.on("resume", async (return_code, session_present) => {
+              try {
                 this.setMqttOnline(false);
                 this.log.info(`Resumed: rc: ${return_code} existing session: ${session_present}`);
                 this.log.info("MQTT reconnect: " + this.mqtt_blocking);
@@ -986,11 +1007,18 @@ class Worx extends Adapter {
                     this.mqtt_restart = this.setTimeout(
                         async () => {
                             this.log.info("Restart Mqtt after 1h");
-                            this.start_mqtt();
+                            try {
+                                await this.start_mqtt();
+                            } catch (e) {
+                                this.log.error("start_mqtt restart failed: " + e);
+                            }
                         },
                         1 * 60 * 1000 * 60,
                     ); // 1 hour
                 }
+              } catch (err) {
+                this.log.error("Error in MQTT resume handler: " + (err && err.stack ? err.stack : err));
+              }
             });
 
             this.mqttC.on("disconnect", () => {

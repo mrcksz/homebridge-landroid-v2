@@ -60,30 +60,42 @@ function LandroidPlatform(log, config, api) {
     self.landroidCloud.log = new LandroidLogger(log);
     self.landroidCloud.log.isDebug = self.debug;
     self.landroidCloud.setState = function(objectname,object) {
-      self.landroidCloud.states[objectname] = object;
-      self.landroidCloud.saveLandroidObjectData();
-      if(objectname == "info.connection" && object == true){
-        self.removeTimeout = setTimeout(self.clearOldMowers.bind(self), 60000);
-      } else if(objectname.includes(".mower.")){
-        let serial = objectname.substring(0, objectname.indexOf("."));
-        let item = objectname.split('.').pop();
+      try {
+        self.landroidCloud.states[objectname] = object;
+        self.landroidCloud.saveLandroidObjectData();
+        if(objectname == "info.connection" && object == true){
+          self.removeTimeout = setTimeout(self.clearOldMowers.bind(self), 60000);
+        } else if(objectname.includes(".mower.")){
+          let serial = objectname.substring(0, objectname.indexOf("."));
+          let item = objectname.split('.').pop();
 
-        if(object && (object.val !== null || object.val !== undefined)) {
-          self.landroidUpdate(serial, item, object.val);
+          if(object && (object.val !== null || object.val !== undefined)) {
+            self.landroidUpdate(serial, item, object.val);
+          }
         }
+      } catch(err) {
+        self.log('Error handling state update for ' + objectname + ': ' + (err && err.stack ? err.stack : err));
       }
     };
     self.landroidCloud.setObjectNotExists = async function(objectname, object) {
-      if(!objectname instanceof String) return;
-      if(!object.common.name instanceof String) return;
-      if(!self.landroidCloud.objects[objectname]) {
-        self.landroidCloud.objects[objectname] = {};
-      }
-      if(!objectname.includes(".") && object.common.name != "[object Object]"){
-        self.landroidFound(object.common.name, objectname);
+      try {
+        if(!objectname instanceof String) return;
+        if(!object.common.name instanceof String) return;
+        if(!self.landroidCloud.objects[objectname]) {
+          self.landroidCloud.objects[objectname] = {};
+        }
+        if(!objectname.includes(".") && object.common.name != "[object Object]"){
+          self.landroidFound(object.common.name, objectname);
+        }
+      } catch(err) {
+        self.log('Error handling object update for ' + objectname + ': ' + (err && err.stack ? err.stack : err));
       }
     };
-    await self.landroidCloud.onReady();
+    try {
+      await self.landroidCloud.onReady();
+    } catch(err) {
+      self.log('Error while connecting to the Worx cloud: ' + (err && err.stack ? err.stack : err));
+    }
   });
 }
 
