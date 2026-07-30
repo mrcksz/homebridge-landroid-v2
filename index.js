@@ -192,14 +192,18 @@ function LandroidAccessory(platform, name, serial, accessory) {
       this.accessory.addService(new Service.Switch("Landroid " + name));
       this.accessory.addService(new Service.Battery());
       this.accessory.addService(new Service.ContactSensor("Landroid " + name + " Problem", "ErrorSensor"));
-      if(this.config.rainsensor) this.accessory.addService(new Service.LeakSensor("Landroid " + name + " Rain"));
-      if(this.config.homesensor) this.accessory.addService(new Service.ContactSensor("Landroid " + name + " Home", "HomeSensor"));
-      if(this.config.partymode) this.accessory.addService(new Service.Switch("Landroid " + name + " PartyMode", "PartySwitch"));
-      if(this.config.edgecut) this.accessory.addService(new Service.Switch("Landroid " + name + " Edge Cut", "EdgeSwitch"));
     }
 
     this.name = this.accessory.context.name;
     this.serial = this.accessory.context.serial;
+
+    // Reconcile optional services on every startup so enabling/disabling them in
+    // the config also works for accessories restored from the HomeKit cache
+    // (not just newly created ones).
+    this.reconcileOptionalService(Service.LeakSensor, "Landroid " + this.name + " Rain", null, !!this.config.rainsensor);
+    this.reconcileOptionalService(Service.ContactSensor, "Landroid " + this.name + " Home", "HomeSensor", !!this.config.homesensor);
+    this.reconcileOptionalService(Service.Switch, "Landroid " + this.name + " PartyMode", "PartySwitch", !!this.config.partymode);
+    this.reconcileOptionalService(Service.Switch, "Landroid " + this.name + " Edge Cut", "EdgeSwitch", !!this.config.edgecut);
 
     this.dataset = {};
     this.dataset.batteryState = 0;
@@ -246,6 +250,23 @@ function LandroidAccessory(platform, name, serial, accessory) {
     } else if(this.config.edgecut) {
       this.log("Edge Cut switch not found");
     }
+}
+
+// Add the optional service if it should exist and doesn't yet, or remove it if
+// it exists but is now disabled. Works for both new and cache-restored accessories.
+LandroidAccessory.prototype.reconcileOptionalService = function(ServiceType, displayName, subtype, enabled) {
+  const key = subtype || displayName;
+  let service = this.accessory.getService(key);
+  if(enabled && !service) {
+    this.log("Adding service '" + displayName + "' to Landroid " + this.name);
+    service = subtype ? new ServiceType(displayName, subtype) : new ServiceType(displayName);
+    this.accessory.addService(service);
+  } else if(!enabled && service) {
+    this.log("Removing service '" + displayName + "' from Landroid " + this.name);
+    this.accessory.removeService(service);
+    service = undefined;
+  }
+  return service;
 }
 
 LandroidAccessory.prototype.landroidUpdate = function(serial, item, data, mowdata) {
@@ -300,10 +321,6 @@ LandroidAccessory.prototype.landroidUpdate = function(serial, item, data, mowdat
         if(this.config.homesensor && this.accessory.getService("HomeSensor")) this.accessory.getService("HomeSensor").getCharacteristic(Characteristic.ContactSensorState).updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
       }else{
         this.accessory.getService(Service.Switch).getCharacteristic(Characteristic.On).updateValue(false);
-      }
-      // statusCode 32 = "Border Cut": reflect it on the optional Edge Cut switch
-      if(this.config.edgecut && this.accessory.getService("EdgeSwitch")) {
-        this.accessory.getService("EdgeSwitch").getCharacteristic(Characteristic.On).updateValue(this.dataset.statusCode == 32);
       }
       if(this.dataset.statusCode == 1 && oldDataset.totalTime != null && oldDataset.totalTime != undefined && mowdata) {
         // Landroid has just arrived home so show how much it's worked since last leaving (or last restarting Homebridge)
@@ -399,27 +416,34 @@ LandroidAccessory.prototype.setPartyMode = function(state, callback) {
   }
   this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
   this.landroidCloud.sendMessage(outMsg, this.serial);
+  callback(null);
 }
 
+// The Edge Cut switch is momentary (a trigger button): it always reads as off and
+// resets itself shortly after being switched on, so it can be used regardless of
+// whether the mower is currently mowing or at home.
 LandroidAccessory.prototype.getEdgeCut = function(callback) {
-  // statusCode 32 = mower is currently cutting the border/edge
-  callback(null, this.dataset.statusCode == 32);
+  callback(null, false);
 }
 
 LandroidAccessory.prototype.setEdgeCut = function(state, callback) {
-  if(!this.serial){
-    this.log("Error: Mower has not been configured yet.");
+  if(state) {
+    if(!this.serial){
+      this.log("Error: Mower has not been configured yet.");
+    } else {
+      // One-time schedule that only cuts the border/edge (bc=1) with no extra mowing (wtm=0)
+      let outMsg = '{"sc":{"ots":{"bc":1,"wtm":0}}}';
+      this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
+      this.landroidCloud.sendMessage(outMsg, this.serial);
+    }
+    // reset the momentary switch back to off
+    const svc = this.accessory.getService("EdgeSwitch");
+    if(svc) {
+      setTimeout(function(){
+        svc.getCharacteristic(Characteristic.On).updateValue(false);
+      }, 1000);
+    }
   }
-  let outMsg;
-  if (state) {
-    // One-time schedule that only cuts the border/edge (bc=1) with no extra mowing (wtm=0)
-    outMsg = '{"sc":{"ots":{"bc":1,"wtm":0}}}';
-  } else {
-    // Send the mower back home
-    outMsg = '{"cmd":3}';
-  }
-  this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
-  this.landroidCloud.sendMessage(outMsg, this.serial);
   callback(null);
 }
 

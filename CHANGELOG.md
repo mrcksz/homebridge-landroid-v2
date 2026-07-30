@@ -1,8 +1,13 @@
 # Changelog
 This is the change log for the plugin, all relevant changes will be listed here.
 
+## 2.1.0-dev.1 (dev channel)
+- Fix: optional services (rain/home/PartyMode/Edge Cut) are now reconciled on every startup, so enabling/disabling them also works for mowers restored from the HomeKit cache (previously they were only added when a mower was first created).
+- Edge Cut switch is now a momentary trigger button (auto-resets to off) so it works regardless of whether the mower is mowing or at home; it no longer sends the mower home when switched off.
+- Fix: `setPartyMode` now calls its HomeKit callback (avoids HomeKit warnings/timeouts).
+
 ## 2.1.0-dev.0 (dev channel)
-- New optional **Edge Cut switch** (`edgecut` config option): turning it on triggers a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`), turning it off sends the mower home. The switch reflects status code 32 ("Border Cut"). Experimental — published on the npm `dev` dist-tag for testing.
+- New optional **Edge Cut switch** (`edgecut` config option): triggers a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`). Experimental — published on the npm `dev` dist-tag for testing.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
