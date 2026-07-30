@@ -20,7 +20,7 @@ function LandroidPlatform(log, config, api) {
   this.mowdata = config.mowdata || false;
   this.cloud = config.cloud || "worx";
   this.accessories = [];
-  this.edgeAccessories = [];
+  this.staleAccessories = [];
   this.cloudMowers = [];
 
   if(!config.email || !config.pwd){
@@ -38,12 +38,11 @@ function LandroidPlatform(log, config, api) {
     self.log('DidFinishLaunching');
     if(self.config.reload){
       self.log('**** WARNING: Landroid plugin is in reload mode, mowers will be recreated each boot ****');
-      self.accessories.concat(self.edgeAccessories).forEach(accessory => {
+      self.accessories.forEach(accessory => {
         self.log('Removing Landroid ' + accessory.accessory.displayName + ' from HomeKit');
         self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [accessory.accessory]);
       });
       self.accessories = [];
-      self.edgeAccessories = [];
     }
     self.landroidCloud = CloudConnector();
     let persisted_states = self.landroidCloud.loadLandroidObjectData(STORAGE_PATH);
@@ -51,9 +50,16 @@ function LandroidPlatform(log, config, api) {
       self.createUpdate(myname, persisted_states[myname]);
     }
 
-    self.accessories.concat(self.edgeAccessories).forEach(accessory=>{
+    self.accessories.forEach(accessory=>{
       accessory.landroidCloud = self.landroidCloud;
     });
+
+    // Remove any leftover standalone Edge Cut accessories from earlier dev builds
+    if(self.staleAccessories.length){
+      self.log('Removing ' + self.staleAccessories.length + ' obsolete accessory/accessories from HomeKit');
+      self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', self.staleAccessories);
+      self.staleAccessories = [];
+    }
     self.landroidCloud.config = {
       "mail": config.email,
       "password": config.pwd,
@@ -103,14 +109,12 @@ function LandroidPlatform(log, config, api) {
 
 LandroidPlatform.prototype.clearOldMowers = function() {
   const self = this;
-  [this.accessories, this.edgeAccessories].forEach(list => {
-    for(let idx = list.length - 1; idx >= 0; idx--){
-      if(!self.cloudMowers.includes(list[idx].serial)){
-        self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [list[idx].accessory]);
-        list.splice(idx, 1);
-      }
+  for(let idx = this.accessories.length - 1; idx >= 0; idx--){
+    if(!self.cloudMowers.includes(this.accessories[idx].serial)){
+      self.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [this.accessories[idx].accessory]);
+      this.accessories.splice(idx, 1);
     }
-  });
+  }
 }
 
 // Function invoked when homebridge tries to restore cached accessory.
@@ -120,8 +124,8 @@ LandroidPlatform.prototype.configureAccessory = function(accessory) {
   }
   accessory.reachable = false;
   if(accessory.context && accessory.context.type === 'edgecut'){
-    this.log('Restoring Landroid Edge Cut ' + accessory.displayName + ' from HomeKit');
-    this.edgeAccessories.push(new LandroidEdgeCutAccessory(this, accessory));
+    // Standalone Edge Cut accessory from an earlier dev build - schedule for removal
+    this.staleAccessories.push(accessory);
     return;
   }
   this.log('Restoring Landroid ' + accessory.displayName + ' from HomeKit');
@@ -146,8 +150,6 @@ LandroidPlatform.prototype.landroidFound = function(name, serial) {
   if(!this.cloudMowers.includes(serial)){
     this.cloudMowers.push(serial);
   }
-  // Create/remove the separate Edge Cut accessory for this mower based on config
-  this.updateEdgeCutAccessory(name, serial);
   for(var i = 0; i<this.accessories.length; i++){
     const accessory = this.accessories[i];
     if(accessory.serial == serial){
@@ -163,30 +165,6 @@ LandroidPlatform.prototype.landroidFound = function(name, serial) {
   this.log("Adding Landroid " + name + " to HomeKit");
   this.api.registerPlatformAccessories('homebridge-landroid-v2', 'Landroid', [newMower.accessory]);
   //this.landroidUpdate(mower,data);
-}
-
-// Ensure a standalone "Edge Cut" accessory (its own HomeKit tile) exists for the
-// given mower when the edgecut option is enabled, or remove it when disabled.
-LandroidPlatform.prototype.updateEdgeCutAccessory = function(name, serial) {
-  const existing = this.edgeAccessories.find(a => a.serial === serial);
-  if(this.config.edgecut){
-    if(existing) return;
-    const uuid = UUIDGen.generate(serial + "_edgecut");
-    const accessory = new Accessory("Landroid " + name + " Edge Cut", uuid);
-    accessory.context.type = 'edgecut';
-    accessory.context.serial = serial;
-    accessory.context.name = name;
-    accessory.addService(new Service.Switch("Landroid " + name + " Edge Cut"));
-    const wrapper = new LandroidEdgeCutAccessory(this, accessory);
-    wrapper.landroidCloud = this.landroidCloud;
-    this.edgeAccessories.push(wrapper);
-    this.log("Adding Landroid Edge Cut " + name + " to HomeKit");
-    this.api.registerPlatformAccessories('homebridge-landroid-v2', 'Landroid', [accessory]);
-  } else if(existing){
-    this.log("Removing Landroid Edge Cut " + name + " from HomeKit");
-    this.api.unregisterPlatformAccessories('homebridge-landroid-v2', 'Landroid', [existing.accessory]);
-    this.edgeAccessories = this.edgeAccessories.filter(a => a !== existing);
-  }
 }
 
 LandroidPlatform.prototype.createUpdate = function(objectname, object) {
@@ -238,8 +216,15 @@ function LandroidAccessory(platform, name, serial, accessory) {
     this.reconcileOptionalService(Service.LeakSensor, "Landroid " + this.name + " Rain", null, !!this.config.rainsensor);
     this.reconcileOptionalService(Service.ContactSensor, "Landroid " + this.name + " Home", "HomeSensor", !!this.config.homesensor);
     this.reconcileOptionalService(Service.Switch, "Landroid " + this.name + " PartyMode", "PartySwitch", !!this.config.partymode);
-    // Edge Cut is now its own standalone accessory; remove any leftover sub-switch from earlier dev builds
+    // Remove the old long-named Edge Cut sub-switch from earlier dev builds, then
+    // add the Edge Cut trigger as a short-named service on the mower accessory.
     this.reconcileOptionalService(Service.Switch, "Landroid " + this.name + " Edge Cut", "EdgeSwitch", false);
+    const edgeService = this.reconcileOptionalService(Service.Switch, "Edge Cut", "EdgeCut", !!this.config.edgecut);
+    if(edgeService && !edgeService.testCharacteristic(Characteristic.ConfiguredName)){
+      // set a friendly name once on creation; don't overwrite a later user rename
+      edgeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+      edgeService.setCharacteristic(Characteristic.ConfiguredName, "Edge Cut");
+    }
 
     this.dataset = {};
     this.dataset.batteryState = 0;
@@ -280,6 +265,17 @@ function LandroidAccessory(platform, name, serial, accessory) {
     } else if(this.config.partymode) {
       this.log("Party switch not found");
     }
+    if(this.config.edgecut && this.accessory.getService("EdgeCut")) {
+      this.accessory.getService("EdgeCut").getCharacteristic(Characteristic.On).on('get', this.getEdgeCut.bind(this));
+      this.accessory.getService("EdgeCut").getCharacteristic(Characteristic.On).on('set', this.setEdgeCut.bind(this));
+    } else if(this.config.edgecut) {
+      this.log("Edge Cut switch not found");
+    }
+
+    // Mark the mower on/off switch as the primary service so HomeKit keeps the
+    // extra switches (PartyMode, Edge Cut) grouped under this one accessory.
+    const mainSwitch = this.accessory.getService("Landroid " + this.name) || this.accessory.getService(Service.Switch);
+    if(mainSwitch && mainSwitch.setPrimaryService) mainSwitch.setPrimaryService(true);
 }
 
 // Add the optional service if it should exist and doesn't yet, or remove it if
@@ -449,6 +445,33 @@ LandroidAccessory.prototype.setPartyMode = function(state, callback) {
   callback(null);
 }
 
+// The Edge Cut switch is a momentary trigger button: it always reads as off and
+// resets itself shortly after being switched on, so it works regardless of
+// whether the mower is currently mowing or at home.
+LandroidAccessory.prototype.getEdgeCut = function(callback) {
+  callback(null, false);
+}
+
+LandroidAccessory.prototype.setEdgeCut = function(state, callback) {
+  if(state) {
+    if(!this.serial){
+      this.log("Error: Mower has not been configured yet.");
+    } else {
+      // One-time schedule that only cuts the border/edge (bc=1) with no extra mowing (wtm=0)
+      let outMsg = '{"sc":{"ots":{"bc":1,"wtm":0}}}';
+      this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
+      this.landroidCloud.sendMessage(outMsg, this.serial);
+    }
+    const svc = this.accessory.getService("EdgeCut");
+    if(svc) {
+      setTimeout(function(){
+        svc.getCharacteristic(Characteristic.On).updateValue(false);
+      }, 1000);
+    }
+  }
+  callback(null);
+}
+
 LandroidAccessory.prototype.sendMessage = function(cmd, params) {
   if(!this.serial){
     this.log("Error: Mower has not been configured yet.");
@@ -463,54 +486,6 @@ LandroidAccessory.prototype.sendMessage = function(cmd, params) {
     let outMsg = JSON.stringify(message);
     this.log("Sending to Landroid " + this.name + ": [" + outMsg + "] ("+this.serial+")");
     this.landroidCloud.sendMessage(outMsg, this.serial);
-}
-
-// Standalone accessory that exposes a single momentary "Edge Cut" switch as its
-// own HomeKit tile, independent of the mower's on/off switch.
-function LandroidEdgeCutAccessory(platform, accessory) {
-  this.log = platform.log;
-  this.config = platform.config;
-  this.landroidCloud = platform.landroidCloud;
-  this.accessory = accessory;
-  this.name = accessory.context.name;
-  this.serial = accessory.context.serial;
-
-  accessory.getService(Service.AccessoryInformation)
-    .setCharacteristic(Characteristic.Name, "Landroid " + this.name + " Edge Cut")
-    .setCharacteristic(Characteristic.Manufacturer, 'Worx')
-    .setCharacteristic(Characteristic.Model, 'Landroid')
-    .setCharacteristic(Characteristic.SerialNumber, this.serial + "-edgecut");
-
-  const service = accessory.getService(Service.Switch);
-  if(service){
-    service.getCharacteristic(Characteristic.On).on('get', this.getOn.bind(this));
-    service.getCharacteristic(Characteristic.On).on('set', this.setOn.bind(this));
-  }
-}
-
-// Momentary trigger: always reads off, resets itself shortly after being turned on.
-LandroidEdgeCutAccessory.prototype.getOn = function(callback) {
-  callback(null, false);
-}
-
-LandroidEdgeCutAccessory.prototype.setOn = function(state, callback) {
-  if(state) {
-    if(!this.serial || !this.landroidCloud){
-      this.log("Edge Cut: mower has not been configured yet.");
-    } else {
-      // One-time schedule that only cuts the border/edge (bc=1) with no extra mowing (wtm=0)
-      let outMsg = '{"sc":{"ots":{"bc":1,"wtm":0}}}';
-      this.log("Sending to Landroid " + this.name + " Edge Cut: [" + outMsg + "] ("+this.serial+")");
-      this.landroidCloud.sendMessage(outMsg, this.serial);
-    }
-    const service = this.accessory.getService(Service.Switch);
-    if(service){
-      setTimeout(function(){
-        service.getCharacteristic(Characteristic.On).updateValue(false);
-      }, 1000);
-    }
-  }
-  callback(null);
 }
 
 function isOn(c){

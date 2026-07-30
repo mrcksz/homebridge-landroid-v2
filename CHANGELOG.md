@@ -1,6 +1,9 @@
 # Changelog
 This is the change log for the plugin, all relevant changes will be listed here.
 
+## 2.1.0-dev.3 (dev channel)
+- Edge Cut is now a service **on the mower accessory** again (grouped with the mower, not a separate device), but with a short name ("Edge Cut") so Apple Home doesn't truncate it. The mower on/off switch is marked as the primary service. Any standalone Edge Cut accessory created by dev.2 is removed automatically on upgrade.
+
 ## 2.1.0-dev.2 (dev channel)
 - Edge Cut is now exposed as its **own standalone HomeKit accessory** (its own tile), independent of the mower's on/off switch, instead of an extra switch on the mower accessory. Any leftover sub-switch from earlier dev builds is removed automatically.
 - Fix a latent bug in the old-mower cleanup that could skip entries (forEach + splice).
