@@ -1,7 +1,8 @@
 {
   "name": "homebridge-landroid-v2",
+  "displayName": "Landroid v2",
   "version": "2.0.1",
-  "description": "HomeBridge plugin for Worx Landroid lawnmowers (v2 fork, fixed Worx cloud API)",
+  "description": "Homebridge plugin for Worx Landroid (and Kress, Ferrex, Landxcape) robotic lawn mowers. Maintained v2 fork with the Worx cloud API fixes.",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/homebridge/bin/homebridge -P ./ -I -U ./.homebridge"
@@ -12,8 +13,15 @@
   },
   "keywords": [
     "homebridge-plugin",
+    "supports-hap",
     "worx",
-    "landroid"
+    "landroid",
+    "kress",
+    "landxcape",
+    "ferrex",
+    "mower",
+    "lawn-mower",
+    "robot-mower"
   ],
   "author": "Foxlution IT (v2 fork), originally Normen Hansen",
   "license": "MIT",
@@ -21,6 +29,17 @@
     "url": "https://github.com/mrcksz/homebridge-landroid-v2/issues"
   },
   "homepage": "https://github.com/mrcksz/homebridge-landroid-v2#readme",
+  "files": [
+    "index.js",
+    "CloudConnector.js",
+    "CloudAdapter.js",
+    "LandroidDataset.js",
+    "lib/",
+    "config.schema.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "aws-iot-device-sdk": "^2.2.12",
     "aws-iot-device-sdk-v2": "^1.16.2",
@@ -35,7 +54,7 @@
     "homebridge": "^1.3.4"
   },
   "engines": {
-    "node": ">=14.18.0",
-    "homebridge": ">=0.4.10"
+    "node": "^18 || ^20 || ^22",
+    "homebridge": "^1.6.0 || ^2.0.0"
   }
 }
