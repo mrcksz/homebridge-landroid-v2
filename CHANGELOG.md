@@ -8,6 +8,7 @@ For documentation please see the [README](https://github.com/mrcksz/homebridge-l
   - Guard cloud startup (`onReady`) and the state/object update callbacks
   - Guard the periodic intervals (firmware, devices, token refresh, activity log)
   - Guard the MQTT `message`, `connect` and `resume` handlers and the auto-restart timer
+- Remove the inherited (ioBroker) Sentry error-reporting code path; errors are now just logged locally (no analytics/tracking)
 
 ## 2.0.1
 - Fix Homebridge 2.x crash: use `Service.Battery` instead of the removed `Service.BatteryService` alias
