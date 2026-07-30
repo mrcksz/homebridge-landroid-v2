@@ -3,6 +3,9 @@ This is the change log for the plugin, all relevant changes will be listed here.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
+## 2.0.4
+- `config.schema.json`: use standard JSON Schema `required` (array at object level, `["email", "pwd"]`) instead of the deprecated per-field `"required": true/false` shorthand
+
 ## 2.0.3
 - Homebridge Verified check fixes:
   - `engines.node` now also allows Node 24

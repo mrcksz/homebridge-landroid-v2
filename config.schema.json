@@ -5,69 +5,60 @@
   "footerDisplay": "For documentation please see the https://github.com/mrcksz/homebridge-landroid-v2",
   "schema": {
     "type": "object",
+    "required": ["email", "pwd"],
     "properties": {
       "name": {
         "title": "Name",
         "description": "Name for this Landroid platform (shown in the Homebridge log).",
         "type": "string",
-        "default": "Landroid",
-        "required": true
+        "default": "Landroid"
       },
       "email": {
         "title": "eMail",
         "description": "The email address of your worx account",
-        "type": "string",
-        "required": true
+        "type": "string"
       },
       "pwd": {
         "title": "Password",
         "description": "The password of your worx account",
-        "type": "string",
-        "required": true
+        "type": "string"
       },
       "cloud": {
         "title": "Cloud Type",
         "description": "The used cloud - worx, kress or landxcape",
         "type": "string",
         "placeholder": "worx",
-        "default": "worx",
-        "required": false
+        "default": "worx"
       },
       "rainsensor": {
         "title": "Enable rain sensor",
         "description": "Adds a 'Leak' sensor that shows the state of the mowers rain sensor. Note that you might have to reload all mowers once to enable this.",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       },
       "homesensor": {
         "title": "Enable home sensor",
         "description": "Adds a 'Home' sensor that shows the state of the mowers. If in home position sensor is closed. Note that you might have to reload all mowers once to enable this.",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       },
       "partymode": {
         "title": "Enable PartyMode switch",
         "description": "Adds a switch that enables PartyMode on supported mowers",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       },
       "reload": {
         "title": "Reload All Mowers",
         "description": "Clears and reloads all mowers from the cloud, set and reboot HomeBridge, then unset again.",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       },
       "debug": {
         "title": "Debug Mode",
         "description": "Shows additional debug info in the log",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       },
       "mowdata": {
         "title": "Mowing Data Logging",
         "description": "Shows additional mowing data in the log",
-        "type": "boolean",
-        "required": false
+        "type": "boolean"
       }
     }
   },
