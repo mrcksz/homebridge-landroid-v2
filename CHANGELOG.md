@@ -3,6 +3,10 @@ This is the change log for the plugin, all relevant changes will be listed here.
 
 For documentation please see the [README](https://github.com/mrcksz/homebridge-landroid-v2/blob/master/README.md)
 
+## 2.1.1
+- The plugin is now **Homebridge Verified** — added the verified badge to the README
+- Add donation links (`funding` in `package.json`), which enable the *♥ Donate* button on the plugin tile in the Homebridge UI
+
 ## 2.1.0
 - New optional **Edge Cut switch** (`edgecut` config option): a momentary trigger button on the mower accessory (short name "Edge Cut") that starts a one-time border/edge cut (`{"sc":{"ots":{"bc":1,"wtm":0}}}`). It works regardless of whether the mower is currently mowing or at home, and auto-resets to off.
 - Optional services (rain sensor / home sensor / PartyMode / Edge Cut) are now reconciled on every startup, so enabling or disabling them in the config also works for mowers restored from the HomeKit cache (previously they were only added when a mower was first created).

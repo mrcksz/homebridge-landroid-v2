@@ -1,5 +1,7 @@
 # homebridge-landroid-v2
 
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+
 Maintained **v2 fork** of [`normen/homebridge-landroid`](https://github.com/normen/homebridge-landroid), which was discontinued in December 2023.
 
 Homebridge plugin to control Worx Landroid (as well as Kress, Ferrex and Landxcape) lawn mowers through the Cloud, should support most mowers.
@@ -79,6 +81,16 @@ Note: If you update from Version <= 0.9.5 or enable the sensor after first setup
 
 #### Battery Status
 You can see the battery status in the settings of either the switch or contact sensor in the Home app and you can ask Siri about the battery status of your lawn mower.
+
+## Support this plugin
+
+If this plugin keeps your mower running and you'd like to say thanks:
+
+- [GitHub Sponsors](https://github.com/sponsors/mrcksz)
+- [PayPal](https://paypal.me/m3o)
+- [Patreon](https://patreon.com/mrcksz)
+
+These links also show up as a *♥ Donate* button on the plugin tile in the Homebridge UI.
 
 ## Development
 If you want new features or improve the plugin, you're very welcome to do so. The projects `devDependencies` include homebridge and the `npm run test` command has been adapted so that you can run a test instance of homebridge during development. Alternatively you can use `npm run dev` if you have homebridge installed as a global package
